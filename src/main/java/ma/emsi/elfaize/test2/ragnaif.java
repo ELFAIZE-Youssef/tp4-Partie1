@@ -66,7 +66,7 @@ public class ragnaif {
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         //Association des embeddings et des segments correspondants
-        embeddingStore.addAll(embeddings, segments)
+        embeddingStore.addAll(embeddings, segments);
         System.out.println("Les embeddings ont été enregistrés avec succès!");
 
         System.out.println("Phase 1 terminée : préparation du RAG réussie !");
