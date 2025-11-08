@@ -8,14 +8,20 @@ import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
 
 public class RagNaif {
 
@@ -51,5 +57,47 @@ public class RagNaif {
         System.out.println("Les embeddings ont été enregistrés avec succès!");
 
         System.out.println("Phase 1 terminée : préparation du RAG réussie !");
+
+        // === Phase 2 : Assistant RAG ===
+        System.out.println("\n===  Phase 2 : Assistant RAG (Gemini + Embeddings) ===");
+
+
+        var retriever = EmbeddingStoreContentRetriever.builder()
+                .embeddingStore(embeddingStore)
+                .embeddingModel(embeddingModel)
+                .maxResults(2)
+                .minScore(0.5)
+                .build();
+
+        String GEMINI_API_KEY = System.getenv("GEMINI_KEY");
+        if (GEMINI_API_KEY == null) {
+            throw new IllegalStateException("Variable d'environnement manquante !");
+        }
+
+        ChatModel model = GoogleAiGeminiChatModel.builder()
+                .apiKey(GEMINI_API_KEY)
+                .temperature(0.3)
+                .modelName("gemini-2.5-flash")
+                .build();
+
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
+                .contentRetriever(retriever)
+                .build();
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("\nPosez vos questions sur le contenu du PDF (tapez 'exit' pour quitter)");
+        System.out.print("👉 ");
+
+        while (true) {
+            String question = scanner.nextLine();
+            if (question.equalsIgnoreCase("exit")) break;
+            String reponse = assistant.chat(question);
+            System.out.println("\n Réponse : " + reponse);
+            System.out.print("\n > ");
+        }
+
+        System.out.println("\nFin du programme. Assistant RAG exécuté avec succès !");
     }
 }
