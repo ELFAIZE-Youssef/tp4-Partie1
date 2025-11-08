@@ -110,11 +110,18 @@ public class TestPasDeRag {
                 .build();
 
         // 9. Création de l’assistant
-        Assistant assistant = AiServices.builder(Assistant.class)
+//        Assistant assistant = AiServices.builder(Assistant.class)
+//                .chatModel(model)
+//                .retrievalAugmentor(augmentor)
+//                .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
+//                .build();
+
+        AssistantSys assistant = AiServices.builder(AssistantSys.class)
                 .chatModel(model)
                 .retrievalAugmentor(augmentor)
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
-                .build();
+               .build();
+
 
         // 10. Interaction utilisateur
         Scanner scanner = new Scanner(System.in);
